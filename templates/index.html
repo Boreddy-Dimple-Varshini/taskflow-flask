@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskFlow</title>
+</head>
+<body>
+
+    <h1>TaskFlow</h1>
+
+    <input type="text" id="taskInput" placeholder="Enter a task">
+    <button onclick="addTask()">Add Task</button>
+
+    <ul id="taskList"></ul>
+
+<script>
+
+async function loadTasks() {
+
+    const response = await fetch("/tasks");
+    const tasks = await response.json();
+
+    const list = document.getElementById("taskList");
+
+    list.innerHTML = "";
+
+    tasks.forEach(task => {
+
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            <span>${task.task}</span>
+            <button onclick="toggleTask(${task.id})">
+                ${task.completed ? "Undo" : "Complete"}
+            </button>
+            <button onclick="deleteTask(${task.id})">
+                Delete
+            </button>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+
+async function addTask() {
+
+    const input = document.getElementById("taskInput");
+
+    const task = input.value;
+
+    if (!task) {
+        alert("Please enter a task");
+        return;
+    }
+
+    await fetch("/tasks", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            task: task
+        })
+
+    });
+
+    input.value = "";
+
+    loadTasks();
+}
+
+
+async function toggleTask(id) {
+
+    await fetch(`/tasks/${id}`, {
+        method: "PUT"
+    });
+
+    loadTasks();
+}
+
+
+async function deleteTask(id) {
+
+    await fetch(`/tasks/${id}`, {
+        method: "DELETE"
+    });
+
+    loadTasks();
+}
+
+
+loadTasks();
+
+</script>
+
+</body>
+</html>
